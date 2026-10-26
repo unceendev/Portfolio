@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unceen Scripting</title>
+<meta name="description" content="Unceen is a freelance Roblox scripter building combat, data, UI and networking systems in Luau for studios and independent developers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a Studio-style Explorer + Properties rail on the left, the page as the open script on the right */
+:root {
+  --paper: #eceff2;
+  --panel: #e1e5ea;
+  --raised: #f6f8fa;
+  --ink: #12161c;
+  --muted: #56606d;
+  --rule: #c6ccd4;
+  --brick: #da8541;
+  --brick-ink: #9a4c14;
+  --select: #0b6fbf;
+  --select-wash: #d5e6f5;
+  --code-bg: #1b1f26;
+  --code-fg: #d9dde3;
+  --code-kw: #f39c63;
+  --code-str: #a6d48a;
+  --code-num: #f2cf6b;
+  --code-com: #7d8794;
+  --code-fn: #8cc4ff;
+  --stud: rgba(18, 22, 28, 0.07);
+  --display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171c; --panel: #1b1f25; --raised: #20252c; --ink: #e7eaee; --muted: #9aa4b1; --rule: #2f3640;
+    --brick: #e8955a; --brick-ink: #f0a874; --select: #5bb0f5; --select-wash: #1d3347;
+    --code-bg: #0e1115; --stud: rgba(231, 234, 238, 0.05); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171c; --panel: #1b1f25; --raised: #20252c; --ink: #e7eaee; --muted: #9aa4b1; --rule: #2f3640;
+  --brick: #e8955a; --brick-ink: #f0a874; --select: #5bb0f5; --select-wash: #1d3347;
+  --code-bg: #0e1115; --stud: rgba(231, 234, 238, 0.05); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.6;
+}
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--select); outline-offset: 3px; border-radius: 2px; }
+::selection { background: var(--brick); color: #12161c; }
+
+.shell { display: grid; grid-template-columns: 268px minmax(0, 1fr); min-height: 100vh; }
+
+.rail {
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  background: var(--panel); border-right: 1px solid var(--rule);
+  display: flex; flex-direction: column;
+  font-family: var(--mono); font-size: 12.5px;
+}
+.rail-brand { padding: 22px 18px 18px; border-bottom: 1px solid var(--rule); }
+.wordmark { font-family: var(--display); font-weight: 900; font-size: 34px; letter-spacing: 0.02em; line-height: 1; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+.wordmark .brick { width: 22px; height: 22px; background: var(--brick); border-radius: 3px; position: relative; flex: none; }
+.wordmark .brick::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(0,0,0,.18); }
+.status { margin-top: 12px; display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: #3fae62; box-shadow: 0 0 0 3px rgba(63,174,98,.18); }
+
+.pane-label { padding: 10px 18px 6px; text-transform: uppercase; letter-spacing: 0.12em; font-size: 10.5px; color: var(--muted); border-bottom: 1px solid var(--rule); background: var(--raised); }
+.tree { list-style: none; margin: 0; padding: 6px 0 10px; }
+.tree a { display: flex; align-items: center; gap: 8px; padding: 4px 18px; text-decoration: none; color: var(--ink); }
+.tree a:hover { background: var(--select-wash); }
+.tree a.on { background: var(--select); color: #fff; }
+.tree .root { font-weight: 600; }
+.tree .kid { padding-left: 38px; }
+.tree .count { margin-left: auto; color: var(--muted); font-size: 11px; }
+.tree a.on .count { color: rgba(255,255,255,.8); }
+.ico { width: 14px; height: 14px; flex: none; display: inline-block; }
+.ico-place { background: var(--brick); border-radius: 2px; }
+.ico-folder { background: linear-gradient(var(--code-num), var(--code-num)) 0 3px / 100% 11px no-repeat, linear-gradient(var(--code-num), var(--code-num)) 0 0 / 6px 4px no-repeat; border-radius: 1px; opacity: .9; }
+.ico-script { border: 1.5px solid var(--select); border-radius: 2px; background: linear-gradient(var(--select), var(--select)) 2px 3px / 7px 1.5px no-repeat, linear-gradient(var(--select), var(--select)) 2px 6px / 5px 1.5px no-repeat, linear-gradient(var(--select), var(--select)) 2px 9px / 7px 1.5px no-repeat; }
+.ico-module { border: 1.5px solid #9b6fd6; border-radius: 2px; background: linear-gradient(#9b6fd6, #9b6fd6) 2px 3px / 7px 1.5px no-repeat, linear-gradient(#9b6fd6, #9b6fd6) 2px 7px / 4px 1.5px no-repeat; }
+.tree a.on .ico-script, .tree a.on .ico-module { border-color: #fff; background-color: transparent; filter: brightness(2); }
+
+.props { margin: 0; padding: 4px 0 18px; display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.props dt, .props dd { margin: 0; padding: 5px 0; border-bottom: 1px solid var(--rule); }
+.props dt { padding-left: 18px; padding-right: 12px; color: var(--muted); }
+.props dd { padding-right: 18px; overflow-wrap: anywhere; }
+.rail-foot { margin-top: auto; padding: 14px 18px; color: var(--muted); border-top: 1px solid var(--rule); font-size: 11px; }
+
+main { min-width: 0; }
+.band { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: clamp(0px, 3vw, 40px); }
+
+.hero {
+  padding-block: clamp(48px, 8vw, 96px) clamp(40px, 6vw, 72px);
+  background-image: radial-gradient(circle at center, var(--stud) 0 5px, transparent 5.5px);
+  background-size: 22px 22px;
+  border-bottom: 1px solid var(--rule);
+}
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(28px, 4vw, 56px); align-items: center; }
+.eyebrow { font-family: var(--mono); font-size: 13px; color: var(--brick-ink); letter-spacing: 0.02em; margin: 0 0 14px; }
+h1 {
+  font-family: var(--display); font-weight: 900; text-transform: uppercase;
+  font-size: clamp(52px, 7.4vw, 104px); line-height: 0.88; letter-spacing: -0.005em;
+  margin: 0 0 24px; text-wrap: balance;
+}
+h1 span { color: var(--brick); }
+.lede { font-size: clamp(17px, 1.6vw, 19px); max-width: 34em; margin: 0 0 28px; color: var(--ink); }
+.lede b { font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn {
+  font-family: var(--mono); font-size: 14px; font-weight: 600; text-decoration: none;
+  padding: 12px 18px; border-radius: 4px; border: 1.5px solid var(--ink);
+  display: inline-flex; align-items: center; gap: 10px; transition: transform .15s ease, background .15s ease;
+}
+.btn-main { background: var(--ink); color: var(--paper); }
+.btn-main:hover { background: var(--brick); border-color: var(--brick); color: #12161c; }
+.btn-ghost:hover { background: var(--raised); }
+.btn:active { transform: translateY(1px); }
+
+.editor { background: var(--code-bg); color: var(--code-fg); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 24px 48px -24px rgba(10,14,20,.55); min-width: 0; }
+.tabs { display: flex; align-items: stretch; background: #000; font-family: var(--mono); font-size: 12px; }
+.tab { padding: 9px 14px; color: #8b95a3; border-right: 1px solid #1f242c; white-space: nowrap; }
+.tab.live { background: var(--code-bg); color: #e7eaee; box-shadow: inset 0 2px 0 var(--brick); }
+.code { margin: 0; padding: 16px 0; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.65; counter-reset: ln; tab-size: 4; }
+.code .ln { display: block; padding: 0 18px 0 0; white-space: pre; }
+.code .ln::before { counter-increment: ln; content: counter(ln); display: inline-block; width: 3.2em; padding-right: 1.2em; text-align: right; color: #4b535f; user-select: none; }
+.t-kw { color: var(--code-kw); }
+.t-str { color: var(--code-str); }
+.t-num { color: var(--code-num); }
+.t-com { color: var(--code-com); font-style: italic; }
+.t-fn { color: var(--code-fn); }
+.code-foot { display: flex; justify-content: space-between; gap: 12px; padding: 8px 14px; border-top: 1px solid #232933; font-family: var(--mono); font-size: 11px; color: #7d8794; flex-wrap: wrap; }
+
+.stack { padding-block: 18px; border-bottom: 1px solid var(--rule); background: var(--panel); }
+.stack .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: baseline; font-family: var(--mono); font-size: 13px; }
+.stack .wrap span:first-child { color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
+
+section.block { padding-block: clamp(56px, 8vw, 96px); border-bottom: 1px solid var(--rule); scroll-margin-top: 0; }
+.sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px 48px; align-items: end; margin-bottom: clamp(32px, 4vw, 48px); }
+.marker { font-family: var(--mono); font-size: 14px; color: var(--brick-ink); margin: 0 0 8px; }
+h2 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 5vw, 68px); line-height: .92; margin: 0; text-wrap: balance; }
+.sec-head p { margin: 0; color: var(--muted); max-width: 36em; }
+h3 { font-family: var(--display); font-weight: 800; text-transform: uppercase; font-size: 26px; line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.prose { max-width: 38em; }
+.prose p { margin: 0 0 1em; }
+
+.about-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); }
+.history { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
+.history li { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
+.history .k { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-top: 3px; }
+.history b { display: block; }
+.history span { color: var(--muted); font-size: 15px; }
+
+.feature { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-bottom: 20px; }
+.reels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.reel { text-decoration: none; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.screen {
+  position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 6px; overflow: hidden;
+  background: var(--code-bg);
+  background-image:
+    radial-gradient(circle at center, rgba(255,255,255,.05) 0 4px, transparent 4.5px),
+    linear-gradient(160deg, var(--g1, #2a313b), var(--g2, #12161c));
+  background-size: 16px 16px, 100% 100%;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.reel:hover .screen { transform: translateY(-3px); box-shadow: 0 16px 30px -18px rgba(10,14,20,.7); }
+.screen .label { position: absolute; left: 14px; top: 12px; font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.75); letter-spacing: .06em; text-transform: uppercase; }
+.screen .big { position: absolute; left: 14px; bottom: 8px; right: 70px; font-family: var(--display); font-weight: 900; text-transform: uppercase; color: #fff; font-size: clamp(28px, 3.4vw, 46px); line-height: .9; text-wrap: balance; }
+.feature .screen .big { font-size: clamp(32px, 3.8vw, 56px); }
+.screen .big { overflow-wrap: anywhere; hyphens: auto; }
+.play { position: absolute; right: 14px; bottom: 14px; width: 46px; height: 46px; border-radius: 50%; background: var(--brick); display: grid; place-items: center; transition: transform .2s ease; }
+.play::after { content: ""; border-left: 13px solid #12161c; border-top: 8px solid transparent; border-bottom: 8px solid transparent; margin-left: 4px; }
+.reel:hover .play { transform: scale(1.08); }
+.reel-meta { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.reel-meta p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.reel-meta .yt { font-family: var(--mono); font-size: 12px; white-space: nowrap; color: var(--brick-ink); }
+.tag { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.channel-note { margin-top: 28px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.channel-note a { color: var(--brick-ink); }
+
+.services { border-top: 2px solid var(--ink); }
+.svc { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 36px; padding: 26px 0; border-bottom: 1px solid var(--rule); align-items: start; }
+.svc p { margin: 0; }
+.svc .mods { display: flex; flex-wrap: wrap; gap: 6px; }
+.mod { font-family: var(--mono); font-size: 12px; padding: 3px 8px; border-radius: 3px; background: var(--raised); border: 1px solid var(--rule); white-space: nowrap; }
+.scope-note { margin-top: 28px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 18px 20px; background: var(--panel); border-radius: 6px; max-width: 760px; }
+.scope-note b { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--brick-ink); padding-top: 3px; }
+.scope-note p { margin: 0; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); counter-reset: step; }
+.steps li { padding: 22px 24px 26px 0; border-bottom: 1px solid var(--rule); counter-increment: step; display: grid; gap: 8px; align-content: start; }
+.steps li::before { content: counter(step, decimal-leading-zero); font-family: var(--display); font-weight: 900; font-size: 46px; line-height: 1; color: var(--brick); }
+.steps p { margin: 0; color: var(--muted); font-size: 16px; }
+
+.pricing { overflow-x: auto; margin-top: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; }
+th, td { text-align: left; vertical-align: top; padding: 14px 18px 14px 0; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 400; border-bottom: 2px solid var(--ink); }
+td:first-child { font-weight: 700; white-space: nowrap; }
+.pay-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.facts { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); border-top: 2px solid var(--ink); }
+.facts dt, .facts dd { margin: 0; padding: 11px 0; border-bottom: 1px solid var(--rule); }
+.facts dt { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding-right: 22px; padding-top: 14px; }
+.facts dd { overflow-wrap: anywhere; }
+
+.terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(28px, 5vw, 64px); }
+.term { padding: 22px 0; border-top: 1px solid var(--rule); }
+.term h3 { font-size: 22px; margin-bottom: 10px; }
+.term ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.term li::marker { color: var(--brick); }
+.updated { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 24px; }
+
+.contact { background: var(--ink); color: var(--paper); border-bottom: 0; }
+.contact .marker { color: var(--brick); }
+.contact .sec-head p { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+.contact-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); }
+.handles { display: grid; gap: 0; border-top: 2px solid var(--paper); }
+.handle { display: grid; grid-template-columns: 7em minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--paper) 22%, transparent); }
+.handle .k { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: color-mix(in srgb, var(--paper) 60%, transparent); }
+.handle .v { font-family: var(--mono); font-size: clamp(15px, 1.8vw, 20px); overflow-wrap: anywhere; user-select: all; }
+.handle .v a { text-decoration-color: var(--brick); text-underline-offset: 4px; }
+.copy { font-family: var(--mono); font-size: 12px; background: transparent; color: var(--paper); border: 1px solid color-mix(in srgb, var(--paper) 40%, transparent); border-radius: 3px; padding: 6px 10px; cursor: pointer; min-width: 64px; }
+.copy:hover { border-color: var(--brick); color: var(--brick); }
+.brief h3 { margin-bottom: 14px; color: var(--paper); }
+.brief ol { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; color: color-mix(in srgb, var(--paper) 82%, transparent); }
+.brief li::marker { font-family: var(--mono); color: var(--brick); }
+
+footer { padding-block: 26px 34px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 28px; justify-content: space-between; }
+
+@media (max-width: 1100px) {
+  .svc { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+  .svc .mods { grid-column: 2; }
+}
+@media (max-width: 980px) {
+  .shell { display: block; }
+  .rail { position: sticky; top: env(safe-area-inset-top, 0px); height: auto; z-index: 20; flex-direction: row; align-items: center; border-right: 0; border-bottom: 1px solid var(--rule); padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); overflow: visible; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+  .rail-brand { border-bottom: 0; padding: 10px 14px 10px 16px; flex: none; }
+  .wordmark { font-size: 26px; }
+  .wordmark .brick { width: 18px; height: 18px; }
+  .wordmark .brick::after { inset: 5px; }
+  .status, .pane-label, .props, .rail-foot, .tree .root, .tree .count { display: none; }
+  .tree { display: flex; overflow-x: auto; padding: 0 8px 0 0; scrollbar-width: none; min-width: 0; }
+  .tree::-webkit-scrollbar { display: none; }
+  .tree a, .tree .kid { padding: 8px 10px; white-space: nowrap; border-radius: 4px; }
+  .tree .ico { display: none; }
+  .hero .wrap, .about-grid, .pay-grid, .contact-grid, .sec-head { grid-template-columns: minmax(0, 1fr); }
+  .reels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .reels .reel:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .feature, .reels, .terms, .steps { grid-template-columns: minmax(0, 1fr); }
+  .reels .reel:last-child:nth-child(odd) { grid-column: auto; }
+  .svc { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .svc .mods { grid-column: auto; }
+  .history li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .handle { grid-template-columns: minmax(0, 1fr) auto; }
+  .handle .k { grid-column: 1 / -1; }
+  .scope-note { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .code { font-size: 11.5px; }
+}
+</style>
+
+</head>
+<body>
+<div class="shell">
+  <aside class="rail" aria-label="Site navigation">
+    <div class="rail-brand">
+      <a class="wordmark" href="#top"><span class="brick" aria-hidden="true"></span>UNCEEN</a>
+      <div class="status"><i aria-hidden="true"></i>Taking commissions</div>
+    </div>
+    <div class="pane-label">Explorer</div>
+    <ul class="tree">
+      <li><a class="root" href="#top"><span class="ico ico-place" aria-hidden="true"></span>Unceen</a></li>
+      <li><a class="kid" href="#about"><span class="ico ico-folder" aria-hidden="true"></span>About</a></li>
+      <li><a class="kid" href="#work"><span class="ico ico-folder" aria-hidden="true"></span>Work<span class="count">8</span></a></li>
+      <li><a class="kid" href="#services"><span class="ico ico-module" aria-hidden="true"></span>Services</a></li>
+      <li><a class="kid" href="#process"><span class="ico ico-script" aria-hidden="true"></span>Process</a></li>
+      <li><a class="kid" href="#payment"><span class="ico ico-script" aria-hidden="true"></span>Pricing &amp; payment</a></li>
+      <li><a class="kid" href="#terms"><span class="ico ico-module" aria-hidden="true"></span>Terms</a></li>
+      <li><a class="kid" href="#contact"><span class="ico ico-script" aria-hidden="true"></span>Contact</a></li>
+    </ul>
+    <div class="pane-label">Properties</div>
+    <dl class="props">
+      <dt>Service</dt><dd>Roblox scripting</dd>
+      <dt>Language</dt><dd>Luau</dd>
+      <dt>Based in</dt><dd>Washington, USA</dd>
+      <dt>Hours</dt><dd>Pacific Time</dd>
+      <dt>Payment</dt><dd>PayPal invoice</dd>
+      <dt>Currency</dt><dd>USD</dd>
+    </dl>
+    <div class="rail-foot">Unceen.dev@gmail.com</div>
+  </aside>
+
+  <main id="top">
+    <header class="hero band">
+      <div class="wrap">
+        <div>
+          <p class="eyebrow">Freelance Roblox scripter · Luau</p>
+          <h1>I script the parts players <span>never see.</span></h1>
+          <p class="lede">I'm <b>Unceen</b>. Studios and solo developers hire me to build the systems under their games: combat, saving, networking, UI logic and the frameworks that hold it all together. You get code that runs well on a full server and that your team can keep building on after I hand it over.</p>
+          <div class="actions">
+            <a class="btn btn-main" href="#contact">Start a project <span aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost" href="#work">Watch the work</a>
+          </div>
+        </div>
+        <figure class="editor" aria-label="Sample of Unceen's Luau code style" style="margin:0">
+          <div class="tabs"><span class="tab live">CombatService</span><span class="tab">DataService</span><span class="tab">Network</span></div>
+<pre class="code" id="sample">--// Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+--// Constants
+const SwingRemote = ReplicatedStorage.Remotes.Swing
+const MaxSwingRange = 14
+const SwingsPerSecond = 6
+
+--// Variables
+local LastSwings = {}
+
+--// Private API
+local function CanSwing(Player)
+	local Now = os.clock()
+	if Now - (LastSwings[Player] or 0) &lt; 1 / SwingsPerSecond then
+		return false
+	end
+	LastSwings[Player] = Now
+	return true
+end
+
+--// Public API
+SwingRemote.OnServerEvent:Connect(function(Player, Target)
+	if typeof(Target) ~= "Instance" or not CanSwing(Player) then return end
+
+	local Root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+	local TargetRoot = Target:FindFirstChild("HumanoidRootPart")
+	local TargetHumanoid = Target:FindFirstChildOfClass("Humanoid")
+	if not (Root and TargetRoot and TargetHumanoid) then return end
+
+	if (Root.Position - TargetRoot.Position).Magnitude &lt;= MaxSwingRange then
+		TargetHumanoid:TakeDamage(10)
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+	LastSwings[Player] = nil
+end)</pre>
+          <figcaption class="code-foot"><span>ServerScriptService › CombatService</span><span>Server-checked · rate limited · cleaned up on leave</span></figcaption>
+        </figure>
+      </div>
+    </header>
+
+    <div class="stack band">
+      <div class="wrap">
+        <span>Works with</span>
+        <span>Luau</span><span>ProfileStore</span><span>Fusion</span><span>ByteNet</span><span>Lync</span><span>Jecs</span><span>Rojo</span><span>Team Create</span>
+      </div>
+    </div>
+
+    <section class="block band" id="about">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// About</p><h2>Who you'd be working with</h2></div>
+          <p>One person, writing every line himself, start to finish.</p>
+        </div>
+        <div class="about-grid">
+          <div class="prose">
+            <p>I'm a freelance Roblox game developer working mainly as a scripter. I take on contract work for studios and build my own games on the side, so I've seen both what a client needs on a deadline and what a codebase needs to survive a year of updates.</p>
+            <p>Most of my work is backend: entity and combat systems, player data with versioned migrations, buffered networking, server-side validation and anti-exploit checks. I also do a lot of UI programming, usually reactive UI with full animation passes.</p>
+            <p>I work inside your existing framework rather than replacing it. If you have conventions, I follow them. If you don't, I'll set up a clean structure of services, controllers and shared modules that your other scripters can pick up quickly.</p>
+          </div>
+          <ul class="history">
+            <li><span class="k">Contract</span><div><b>Boss Studio</b><span>Scripting on a live title</span></div></li>
+            <li><span class="k">Team project</span><div><b>Farlands</b><span>Credited scripter on a large team-built RPG, in development</span></div></li>
+            <li><span class="k">Own games</span><div><b>Noctra &amp; BladePoint</b><span>A combat RPG and a movement-focused PvP game</span></div></li>
+            <li><span class="k">Community</span><div><b>Scripter Discord</b><span>I run a Discord server for Roblox scripters and help evaluate members' work</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="block band" id="work">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// Work</p><h2>Recent builds</h2></div>
+          <p>Screen recordings of systems I scripted. Each clip opens on YouTube in a new tab.</p>
+        </div>
+
+        <div class="feature">
+          <a class="reel" href="https://youtu.be/XwHSWa3hIck" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#5a2a1a;--g2:#14100f"><span class="label">Combat</span><span class="big">Combat system trailer</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Full melee combat kit: hits, blocking, stuns and ability flow, cut into a trailer.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+          <a class="reel" href="https://youtu.be/4pCq--MTQZY" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#2c2550;--g2:#100f18"><span class="label">Systems · UI</span><span class="big">Character customization</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Customization system with a full intro sequence, main menu and animated UI throughout.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+        </div>
+
+        <div class="reels">
+          <a class="reel" href="https://youtu.be/zcb_e9PtyUk" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#3a3f2a;--g2:#121410"><span class="label">Systems</span><span class="big">Gun system</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Firearm framework: firing, reloads and hit handling.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+          <a class="reel" href="https://youtu.be/e3E0eRWevbk" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#1f3d46;--g2:#0e1416"><span class="label">UI</span><span class="big">RPG menu &amp; HUD</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Main menu plus in-game interface for an RPG.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+          <a class="reel" href="https://youtu.be/PXeeD3RlYsI" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#4d3a17;--g2:#16120c"><span class="label">UI</span><span class="big">Daily rewards</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Daily rewards screen with claim states and animation.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+          <a class="reel" href="https://youtu.be/8-i408PonWo" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#163a52;--g2:#0d1218"><span class="label">UI</span><span class="big">Fusion UI</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Reactive interface built with the Fusion library.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+          <a class="reel" href="https://youtu.be/ksYDLi8paYQ" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#3b2440;--g2:#130f15"><span class="label">UI</span><span class="big">Main menu</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Animated title screen and menu flow.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+          <a class="reel" href="https://youtu.be/0fhcvg4vzbM" target="_blank" rel="noopener">
+            <div class="screen" style="--g1:#2f3540;--g2:#111418"><span class="label">Showcase</span><span class="big">More from the channel</span><span class="play" aria-hidden="true"></span></div>
+            <div class="reel-meta"><p>Another recent system recording.</p><span class="yt">YouTube ↗</span></div>
+          </a>
+        </div>
+        <p class="channel-note">More clips: <a href="https://www.youtube.com/@unceenscripting5447" target="_blank" rel="noopener">youtube.com/@unceenscripting5447</a> · Some client work is under NDA and isn't shown here.</p>
+      </div>
+    </section>
+
+    <section class="block band" id="services">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// Services</p><h2>What I build</h2></div>
+          <p>Everything I sell is custom scripting, delivered as code inside your Roblox place. The tags show the kind of modules you'd get back.</p>
+        </div>
+        <div class="services">
+          <div class="svc"><h3>Combat &amp; abilities</h3><p>Hit detection, blocking and parries, stuns, knockback, cooldowns, and skill sequencers that keep animations, sounds and VFX in sync with the server.</p><div class="mods"><span class="mod">CombatService</span><span class="mod">Hitbox</span><span class="mod">Sequencer</span></div></div>
+          <div class="svc"><h3>Player data</h3><p>Saving and loading with ProfileStore, session locking, inventories, currencies, and versioned migrations so old saves keep working after you change the format.</p><div class="mods"><span class="mod">DataService</span><span class="mod">Migrations</span><span class="mod">Inventory</span></div></div>
+          <div class="svc"><h3>Networking &amp; security</h3><p>Buffered remotes, server checks on every client request (type, range, ownership, rate), and anti-exploit detection for movement, noclip and remote abuse.</p><div class="mods"><span class="mod">Network</span><span class="mod">Validator</span><span class="mod">AntiCheat</span></div></div>
+          <div class="svc"><h3>UI programming</h3><p>Menus, HUDs, shops, inventories with drag-and-drop, and full animation passes. I script the UI your designer made; I don't draw the art.</p><div class="mods"><span class="mod">UIService</span><span class="mod">Fusion</span><span class="mod">Tweens</span></div></div>
+          <div class="svc"><h3>Frameworks</h3><p>Client and server bootstrappers, a service/controller layout, shared config, and ECS setups for games with lots of moving entities.</p><div class="mods"><span class="mod">Bootstrap</span><span class="mod">Controllers</span><span class="mod">Jecs</span></div></div>
+          <div class="svc"><h3>Fixes &amp; refactors</h3><p>Tracking down bugs, memory leaks and lag in an existing game, or rewriting a messy system without breaking what depends on it.</p><div class="mods"><span class="mod">Profiling</span><span class="mod">Cleanup</span></div></div>
+        </div>
+        <div class="scope-note"><b>Not included</b><p>Building, modeling, animating, VFX art and UI art. I script around those assets, so you'll need them from your team or another freelancer.</p></div>
+      </div>
+    </section>
+
+    <section class="block band" id="process">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// Process</p><h2>How a commission runs</h2></div>
+          <p>The same six steps for every project, so you always know what's next and what you've paid for.</p>
+        </div>
+        <ol class="steps">
+          <li><h3>Brief</h3><p>You message me with what you need, your deadline and any existing code or framework I should work in.</p></li>
+          <li><h3>Quote</h3><p>I send a written quote in USD with the scope, the milestones and an estimated timeline. Nothing is paid until you agree to it.</p></li>
+          <li><h3>Invoice</h3><p>I send a PayPal invoice for the first milestone. Work starts once it's paid.</p></li>
+          <li><h3>Build</h3><p>I work in your place through Team Create or Rojo and post progress clips as each part comes together.</p></li>
+          <li><h3>Review</h3><p>You test the milestone in Studio. I fix anything that doesn't match the agreed scope before we move on.</p></li>
+          <li><h3>Handover</h3><p>The finished code stays in your place. I walk your team through how it's laid out and stay available for follow-up fixes.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block band" id="payment">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// Pricing &amp; payment</p><h2>How you pay</h2></div>
+          <p>Prices depend on how big the system is, so every job is quoted individually. These are the three ways I bill.</p>
+        </div>
+        <div class="pricing">
+          <table>
+            <thead><tr><th>Arrangement</th><th>Best for</th><th>How it's priced</th><th>When you pay</th></tr></thead>
+            <tbody>
+              <tr><td>Fixed project</td><td>One defined system, like a gun framework or a data layer</td><td>One price for the agreed scope, split into milestones</td><td>Before each milestone starts</td></tr>
+              <tr><td>Hourly</td><td>Bug fixing, small changes, open-ended help</td><td>Agreed hourly rate, with a cap you set</td><td>Invoiced weekly for hours worked</td></tr>
+              <tr><td>Monthly</td><td>Ongoing work as a studio's scripter</td><td>Set monthly rate for an agreed workload</td><td>Invoiced at the start of each month</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pay-grid" style="margin-top:44px">
+          <div class="prose">
+            <h3 style="margin-bottom:12px">What a payment buys</h3>
+            <p>Every payment is for custom programming work: Luau scripts written for your Roblox game. There are no physical goods and nothing is shipped. Work is delivered digitally, directly into your Roblox place or as model files you insert yourself.</p>
+            <p>All payments go through PayPal invoices, so each one has a written description of the work it covers. I don't take payment through gift cards or in-game items.</p>
+          </div>
+          <dl class="facts">
+            <dt>Seller</dt><dd>Unceen, freelance Roblox scripter</dd>
+            <dt>Sells</dt><dd>Custom game scripting services</dd>
+            <dt>Delivered</dt><dd>Digitally, into the client's Roblox place</dd>
+            <dt>Payment</dt><dd>PayPal invoice, USD</dd>
+            <dt>Location</dt><dd>Washington, United States</dd>
+            <dt>Support</dt><dd>Unceen.dev@gmail.com</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="block band" id="terms">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// Terms</p><h2>Refunds, ownership &amp; the fine print</h2></div>
+          <p>These apply to every commission unless we agree on something different in writing.</p>
+        </div>
+        <div class="terms">
+          <div class="term"><h3>Refunds</h3><ul>
+            <li>If you cancel before I start a paid milestone, you get that payment back in full.</li>
+            <li>If I can't finish a milestone you've paid for, you get a full refund for it.</li>
+            <li>Once a milestone is delivered and you've approved it, its payment isn't refundable.</li>
+            <li>For hourly work, hours already worked are billed; nothing is charged in advance.</li>
+          </ul></div>
+          <div class="term"><h3>Revisions &amp; support</h3><ul>
+            <li>Bugs in delivered work that fall within the agreed scope are fixed for free for 14 days after handover.</li>
+            <li>New features or changes to the scope are quoted separately.</li>
+            <li>Bugs caused by later edits from other developers aren't covered, but I can fix them hourly.</li>
+          </ul></div>
+          <div class="term"><h3>Ownership</h3><ul>
+            <li>When a project is paid in full, you own the code I wrote for it and can use or change it however you like.</li>
+            <li>General-purpose tools I wrote before your project may be reused in other work; you get a permanent licence to use them in your game.</li>
+            <li>I may show short clips of finished work in my portfolio unless you ask me not to.</li>
+          </ul></div>
+          <div class="term"><h3>Confidentiality</h3><ul>
+            <li>I don't share your code, place files, designs or plans with anyone.</li>
+            <li>I'm happy to sign an NDA before seeing your project.</li>
+            <li>Access to your place is only used for the work you hired me for.</li>
+          </ul></div>
+          <div class="term"><h3>Communication</h3><ul>
+            <li>I work in Pacific Time and usually reply within one day.</li>
+            <li>Progress updates go to your Discord or email as each part of the work comes together.</li>
+            <li>If something will run late, you'll hear about it before the deadline, not after.</li>
+          </ul></div>
+          <div class="term"><h3>Disputes</h3><ul>
+            <li>If you're unhappy with anything, message me first. Most problems are sorted out in a day.</li>
+            <li>If we can't agree, PayPal's dispute process applies to the invoice in question.</li>
+          </ul></div>
+        </div>
+        <p class="updated">Last updated October 26, 2026</p>
+      </div>
+    </section>
+
+    <section class="block band contact" id="contact">
+      <div class="wrap">
+        <div class="sec-head">
+          <div><p class="marker">--// Contact</p><h2>Tell me what you're building</h2></div>
+          <p>Discord is fastest. Email works for anything formal, like NDAs or invoices.</p>
+        </div>
+        <div class="contact-grid">
+          <div class="handles">
+            <div class="handle"><span class="k">Email</span><span class="v" id="v-email">Unceen.dev@gmail.com</span><button class="copy" type="button" data-copy="v-email">Copy</button></div>
+            <div class="handle"><span class="k">Discord</span><span class="v" id="v-discord">unceen</span><button class="copy" type="button" data-copy="v-discord">Copy</button></div>
+            <div class="handle"><span class="k">Roblox</span><span class="v" id="v-roblox">BreezeOnTheDoor</span><button class="copy" type="button" data-copy="v-roblox">Copy</button></div>
+            <div class="handle"><span class="k">YouTube</span><span class="v"><a href="https://www.youtube.com/@unceenscripting5447" target="_blank" rel="noopener">@unceenscripting5447</a></span><span></span></div>
+          </div>
+          <div class="brief">
+            <h3>Put this in your first message</h3>
+            <ol>
+              <li>The game, its genre, and a link if it's public</li>
+              <li>The system you need and how it should behave</li>
+              <li>Any framework or libraries already in use</li>
+              <li>Your deadline</li>
+              <li>Your budget, or a range</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="band">
+      <div class="wrap">
+        <span>© 2026 Unceen · Freelance Roblox scripting</span>
+        <span>Not affiliated with or endorsed by Roblox Corporation.</span>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  const Sample = document.getElementById("sample");
+  if (Sample) {
+    const Source = Sample.textContent.replace(/\t/g, "    ");
+    const Escape = (Text) => Text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const Pattern = /(--[^\n]*)|("(?:[^"\\\n]|\\.)*")|\b(local|const|function|end|if|then|else|elseif|return|not|and|or|for|in|do|while|nil|true|false)\b|\b(\d+(?:\.\d+)?)\b|\b(game|os|math|typeof|require)\b/g;
+    const Highlighted = Source.split("\n").map((Line) => {
+      let Out = "";
+      let Last = 0;
+      Line.replace(Pattern, (Match, Com, Str, Kw, Num, Fn, Index) => {
+        Out += Escape(Line.slice(Last, Index));
+        const Kind = Com ? "com" : Str ? "str" : Kw ? "kw" : Num ? "num" : "fn";
+        Out += '<span class="t-' + Kind + '">' + Escape(Match) + "</span>";
+        Last = Index + Match.length;
+        return Match;
+      });
+      Out += Escape(Line.slice(Last));
+      return '<span class="ln">' + (Out || " ") + "</span>";
+    });
+    Sample.innerHTML = Highlighted.join("");
+  }
+
+  document.querySelectorAll(".copy").forEach((Button) => {
+    Button.addEventListener("click", () => {
+      const Target = document.getElementById(Button.dataset.copy);
+      if (!Target) return;
+      const Done = (Label) => {
+        Button.textContent = Label;
+        setTimeout(() => { Button.textContent = "Copy"; }, 1600);
+      };
+      const SelectText = () => {
+        const Range = document.createRange();
+        Range.selectNodeContents(Target);
+        const Selection = window.getSelection();
+        Selection.removeAllRanges();
+        Selection.addRange(Range);
+        Done("Selected");
+      };
+      try {
+        navigator.clipboard.writeText(Target.textContent.trim()).then(() => Done("Copied"), SelectText);
+      } catch (Err) {
+        SelectText();
+      }
+    });
+  });
+
+  const Links = Array.from(document.querySelectorAll(".tree a.kid"));
+  const Sections = Links.map((Link) => document.querySelector(Link.getAttribute("href"))).filter(Boolean);
+  if ("IntersectionObserver" in window && Sections.length) {
+    const Observer = new IntersectionObserver((Entries) => {
+      Entries.forEach((Entry) => {
+        if (!Entry.isIntersecting) return;
+        Links.forEach((Link) => Link.classList.toggle("on", Link.getAttribute("href") === "#" + Entry.target.id));
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    Sections.forEach((Section) => Observer.observe(Section));
+  }
+})();
+</script>
+
+</body>
+</html>
